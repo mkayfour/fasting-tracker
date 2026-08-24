@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, TextInput } from 'react-native';
 import { useActiveFast } from '../contexts/ActiveFastContext';
 import { useTheme } from '../theme/useTheme';
+import { CompletedFast } from '../db/fasts';
+import CelebrationModal from '../components/CelebrationModal';
 
 function formatElapsed(startAt: string): string {
   const ms = Date.now() - new Date(startAt).getTime();
@@ -26,6 +28,7 @@ export default function TimerScreen() {
   const [selectedHours, setSelectedHours] = useState<number>(PRESETS[0].hours);
   const [customHours, setCustomHours] = useState('');
   const [customSelected, setCustomSelected] = useState(false);
+  const [completedFast, setCompletedFast] = useState<CompletedFast | null>(null);
 
   useEffect(() => {
     if (!activeFast) return;
@@ -50,6 +53,13 @@ export default function TimerScreen() {
 
   const customIsValid = Number.isFinite(parseFloat(customHours)) && parseFloat(customHours) > 0;
   const startDisabled = customSelected && !customIsValid;
+
+  async function handleStop() {
+    const ended = await stop();
+    if (ended) {
+      setCompletedFast(ended);
+    }
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -117,7 +127,7 @@ export default function TimerScreen() {
       )}
 
       <Pressable
-        onPress={() => (activeFast ? stop() : handleStart())}
+        onPress={() => (activeFast ? handleStop() : handleStart())}
         disabled={startDisabled}
         style={[
           styles.button,
@@ -126,6 +136,8 @@ export default function TimerScreen() {
       >
         <Text style={styles.buttonText}>{activeFast ? 'End Fast' : 'Start Fast'}</Text>
       </Pressable>
+
+      <CelebrationModal fast={completedFast} onClose={() => setCompletedFast(null)} />
     </View>
   );
 }

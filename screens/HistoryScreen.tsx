@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CompletedFast, listFasts } from '../db/fasts';
 import { useTheme } from '../theme/useTheme';
 import { useActiveFast } from '../contexts/ActiveFastContext';
+import FastDetailModal from '../components/FastDetailModal';
 
 function formatDuration(startAt: string, endAt: string): string {
   const ms = new Date(endAt).getTime() - new Date(startAt).getTime();
@@ -17,18 +18,14 @@ export default function HistoryScreen() {
   const { activeFast } = useActiveFast();
   const insets = useSafeAreaInsets();
   const [fasts, setFasts] = useState<CompletedFast[]>([]);
+  const [selectedFast, setSelectedFast] = useState<CompletedFast | null>(null);
 
   useEffect(() => {
     listFasts().then(setFasts);
   }, [activeFast]);
 
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.background, paddingTop: insets.top + 16 },
-      ]}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + 16 }]}>
       <FlatList
         data={fasts}
         keyExtractor={(item) => String(item.id)}
@@ -36,16 +33,19 @@ export default function HistoryScreen() {
           <Text style={[styles.empty, { color: colors.textMuted }]}>No fasts yet</Text>
         }
         renderItem={({ item }) => (
-          <View style={[styles.row, { borderBottomColor: colors.border }]}>
-            <Text style={[styles.date, { color: colors.text }]}>
-              {new Date(item.startAt).toLocaleDateString()}
-            </Text>
-            <Text style={[styles.duration, { color: colors.textMuted }]}>
-              {formatDuration(item.startAt, item.endAt)} · {item.scheduleType}
-            </Text>
-          </View>
+          <Pressable onPress={() => setSelectedFast(item)}>
+            <View style={[styles.row, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.date, { color: colors.text }]}>
+                {new Date(item.startAt).toLocaleDateString()}
+              </Text>
+              <Text style={[styles.duration, { color: colors.textMuted }]}>
+                {formatDuration(item.startAt, item.endAt)} · {item.scheduleType}
+              </Text>
+            </View>
+          </Pressable>
         )}
       />
+      <FastDetailModal fast={selectedFast} onClose={() => setSelectedFast(null)} />
     </View>
   );
 }

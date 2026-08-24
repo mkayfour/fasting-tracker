@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { Fast, getActiveFast, startFast, endFast } from '../db/fasts';
+import { CompletedFast, Fast, getActiveFast, startFast, endFast } from '../db/fasts';
 
 type ActiveFastContextValue = {
   activeFast: Fast | null;
   loading: boolean;
   start: (goalHours: number, scheduleType: string) => Promise<void>;
-  stop: () => Promise<void>;
+  stop: () => Promise<CompletedFast | undefined>;
 };
 
 const ActiveFastContext = createContext<ActiveFastContextValue | undefined>(undefined);
@@ -26,9 +26,10 @@ export function ActiveFastProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const stop = useCallback(async () => {
-    if (!activeFast) return;
-    await endFast(activeFast.id);
+    if (!activeFast) return undefined;
+    const ended = await endFast(activeFast.id);
     setActiveFast(null);
+    return ended as CompletedFast;
   }, [activeFast]);
 
   return (
