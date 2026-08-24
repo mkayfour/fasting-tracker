@@ -2,18 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { CompletedFast } from '../db/fasts';
 import { ThemeColors } from '../theme/colors';
-
-function formatDuration(startAt: string, endAt: string): string {
-  const ms = new Date(endAt).getTime() - new Date(startAt).getTime();
-  const hours = Math.floor(ms / 3_600_000);
-  const minutes = Math.floor((ms % 3_600_000) / 60_000);
-  return `${hours}h ${minutes}m`;
-}
-
-function formatDateTime(iso: string): string {
-  const d = new Date(iso);
-  return `${d.toLocaleDateString()} · ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-}
+import { formatDuration, formatDateTime } from '../utils/time';
 
 function metGoal(fast: CompletedFast): boolean {
   const ms = new Date(fast.endAt).getTime() - new Date(fast.startAt).getTime();
