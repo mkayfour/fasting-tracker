@@ -45,12 +45,20 @@ export async function startFast(goalHours: number, scheduleType: string): Promis
   }
   const db = await getDb();
   const startAt = new Date().toISOString();
-  const result = await db.runAsync(
-    'INSERT INTO fasts (start_at, goal_hours, schedule_type) VALUES (?, ?, ?)',
-    startAt,
-    goalHours,
-    scheduleType
-  );
+  let result;
+  try {
+    result = await db.runAsync(
+      'INSERT INTO fasts (start_at, goal_hours, schedule_type) VALUES (?, ?, ?)',
+      startAt,
+      goalHours,
+      scheduleType
+    );
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('UNIQUE constraint failed')) {
+      throw new Error('A fast is already active');
+    }
+    throw err;
+  }
   return {
     id: result.lastInsertRowId,
     startAt,

@@ -44,3 +44,15 @@ test('listFasts returns completed fasts, most recent first', async () => {
   const fasts = await listFasts();
   expect(fasts.map((f) => f.id)).toEqual([second.id, first.id]);
 });
+
+test('concurrent startFast calls only allow one to succeed', async () => {
+  const results = await Promise.allSettled([
+    startFast(16, '16:8'),
+    startFast(18, '18:6'),
+  ]);
+  const fulfilled = results.filter((r) => r.status === 'fulfilled');
+  const rejected = results.filter((r) => r.status === 'rejected');
+  expect(fulfilled).toHaveLength(1);
+  expect(rejected).toHaveLength(1);
+  expect(await getActiveFast()).not.toBeNull();
+});

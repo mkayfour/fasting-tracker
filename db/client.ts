@@ -14,6 +14,9 @@ export function getDb(): Promise<SQLite.SQLiteDatabase> {
           schedule_type TEXT NOT NULL,
           notes TEXT
         );
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_fasts_one_active
+          ON fasts ((end_at IS NULL))
+          WHERE end_at IS NULL;
       `);
       return db;
     });
