@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, TextInput } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useActiveFast } from '../contexts/ActiveFastContext';
 import { useTheme } from '../theme/useTheme';
 import { CompletedFast } from '../db/fasts';
 import CelebrationModal from '../components/CelebrationModal';
+import DurationDropdown, { DurationOption, DURATION_PRESETS } from '../components/DurationDropdown';
 
 function formatElapsed(startAt: string): string {
   const ms = Date.now() - new Date(startAt).getTime();
@@ -14,18 +15,11 @@ function formatElapsed(startAt: string): string {
   return [hours, minutes, seconds].map((n) => String(n).padStart(2, '0')).join(':');
 }
 
-const PRESETS: { hours: number; scheduleType: string }[] = [
-  { hours: 16, scheduleType: '16:8' },
-  { hours: 18, scheduleType: '18:6' },
-  { hours: 20, scheduleType: '20:4' },
-  { hours: 24, scheduleType: 'OMAD' },
-];
-
 export default function TimerScreen() {
   const { activeFast, loading, start, stop } = useActiveFast();
   const { colors } = useTheme();
   const [, forceTick] = useState(0);
-  const [selectedHours, setSelectedHours] = useState<number>(PRESETS[0].hours);
+  const [selectedPreset, setSelectedPreset] = useState<DurationOption>(DURATION_PRESETS[0]);
   const [customHours, setCustomHours] = useState('');
   const [customSelected, setCustomSelected] = useState(false);
   const [completedFast, setCompletedFast] = useState<CompletedFast | null>(null);
@@ -47,12 +41,8 @@ export default function TimerScreen() {
       start(parsed, 'custom');
       return;
     }
-    const preset = PRESETS.find((p) => p.hours === selectedHours) ?? PRESETS[0];
-    start(preset.hours, preset.scheduleType);
+    start(selectedPreset.hours, selectedPreset.scheduleType);
   }
-
-  const customIsValid = Number.isFinite(parseFloat(customHours)) && parseFloat(customHours) > 0;
-  const startDisabled = customSelected && !customIsValid;
 
   async function handleStop() {
     const ended = await stop();
@@ -60,6 +50,9 @@ export default function TimerScreen() {
       setCompletedFast(ended);
     }
   }
+
+  const customIsValid = Number.isFinite(parseFloat(customHours)) && parseFloat(customHours) > 0;
+  const startDisabled = customSelected && !customIsValid;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -71,58 +64,16 @@ export default function TimerScreen() {
       </Text>
 
       {!activeFast && (
-        <View style={styles.presetsRow}>
-          {PRESETS.map((preset) => {
-            const isSelected = !customSelected && selectedHours === preset.hours;
-            return (
-              <Pressable
-                key={preset.scheduleType}
-                onPress={() => {
-                  setCustomSelected(false);
-                  setSelectedHours(preset.hours);
-                }}
-                style={[
-                  styles.chip,
-                  {
-                    borderColor: isSelected ? colors.accent : colors.border,
-                    backgroundColor: isSelected ? colors.accent : colors.surface,
-                  },
-                ]}
-              >
-                <Text style={[styles.chipText, { color: isSelected ? '#FFFFFF' : colors.text }]}>
-                  {preset.hours}h
-                </Text>
-              </Pressable>
-            );
-          })}
-          <Pressable
-            onPress={() => setCustomSelected(true)}
-            style={[
-              styles.chip,
-              {
-                borderColor: customSelected ? colors.accent : colors.border,
-                backgroundColor: customSelected ? colors.accent : colors.surface,
-              },
-            ]}
-          >
-            <Text style={[styles.chipText, { color: customSelected ? '#FFFFFF' : colors.text }]}>
-              Custom
-            </Text>
-          </Pressable>
-        </View>
-      )}
-
-      {!activeFast && customSelected && (
-        <TextInput
-          value={customHours}
-          onChangeText={setCustomHours}
-          placeholder="Hours"
-          placeholderTextColor={colors.textMuted}
-          keyboardType="numeric"
-          style={[
-            styles.customInput,
-            { color: colors.text, borderColor: colors.border, backgroundColor: colors.surface },
-          ]}
+        <DurationDropdown
+          selected={selectedPreset}
+          customHours={customHours}
+          isCustom={customSelected}
+          onSelectPreset={(option) => {
+            setCustomSelected(false);
+            setSelectedPreset(option);
+          }}
+          onSelectCustom={() => setCustomSelected(true)}
+          onChangeCustomHours={setCustomHours}
         />
       )}
 
@@ -146,19 +97,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   elapsed: { fontSize: 48, fontVariant: ['tabular-nums'], fontWeight: '600' },
   status: { fontSize: 16, marginTop: 8, marginBottom: 8 },
-  presetsRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 16 },
-  chip: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1 },
-  chipText: { fontSize: 14, fontWeight: '600' },
-  customInput: {
-    marginTop: 12,
-    width: 120,
-    textAlign: 'center',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    fontSize: 16,
-  },
   button: { paddingVertical: 14, paddingHorizontal: 32, borderRadius: 8 },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
 });

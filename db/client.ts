@@ -17,6 +17,10 @@ export function getDb(): Promise<SQLite.SQLiteDatabase> {
         CREATE UNIQUE INDEX IF NOT EXISTS idx_fasts_one_active
           ON fasts ((end_at IS NULL))
           WHERE end_at IS NULL;
+        CREATE TABLE IF NOT EXISTS settings (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        );
       `);
       return db;
     });
