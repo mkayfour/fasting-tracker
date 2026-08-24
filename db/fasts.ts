@@ -10,6 +10,8 @@ export type Fast = {
   notes: string | null;
 };
 
+export type CompletedFast = Fast & { endAt: string };
+
 type FastRow = {
   id: number;
   start_at: string;
@@ -80,10 +82,10 @@ export async function endFast(id: number): Promise<Fast> {
   return rowToFast(row);
 }
 
-export async function listFasts(): Promise<Fast[]> {
+export async function listFasts(): Promise<CompletedFast[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<FastRow>(
     'SELECT * FROM fasts WHERE end_at IS NOT NULL ORDER BY start_at DESC, id DESC'
   );
-  return rows.map(rowToFast);
+  return rows.map((row) => rowToFast(row) as CompletedFast);
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { Fast, listFasts } from '../db/fasts';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CompletedFast, listFasts } from '../db/fasts';
 import { useTheme } from '../theme/useTheme';
 import { useActiveFast } from '../contexts/ActiveFastContext';
 
@@ -14,14 +15,20 @@ function formatDuration(startAt: string, endAt: string): string {
 export default function HistoryScreen() {
   const { colors } = useTheme();
   const { activeFast } = useActiveFast();
-  const [fasts, setFasts] = useState<Fast[]>([]);
+  const insets = useSafeAreaInsets();
+  const [fasts, setFasts] = useState<CompletedFast[]>([]);
 
   useEffect(() => {
     listFasts().then(setFasts);
   }, [activeFast]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.background, paddingTop: insets.top + 16 },
+      ]}
+    >
       <FlatList
         data={fasts}
         keyExtractor={(item) => String(item.id)}
@@ -34,7 +41,7 @@ export default function HistoryScreen() {
               {new Date(item.startAt).toLocaleDateString()}
             </Text>
             <Text style={[styles.duration, { color: colors.textMuted }]}>
-              {formatDuration(item.startAt, item.endAt as string)} · {item.scheduleType}
+              {formatDuration(item.startAt, item.endAt)} · {item.scheduleType}
             </Text>
           </View>
         )}
