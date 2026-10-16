@@ -27,3 +27,5 @@ Open the deployed site in Safari, tap Share, then **Add to Home Screen**.
 ## Data
 
 All data is stored on-device in the browser's localStorage, per browser or install. It is not synced between devices.
+
+**Caution:** use the app from the Home Screen icon. Data in a Safari tab is separate from the installed app, and iOS may clear website data after about 7 days of non-use in Safari. Data is local to the device and is not synced.

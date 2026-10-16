@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import {
   endFast, getActiveFast, listFasts, startFast,
   type CompletedFast, type Fast,
@@ -21,6 +21,16 @@ export function FastsProvider({ children }: { children: ReactNode }) {
     setActiveFast(getActiveFast())
     setHistory(listFasts())
   }, [])
+
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh() }
+    window.addEventListener('storage', refresh)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener('storage', refresh)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [refresh])
 
   const start = useCallback((goalHours: number, scheduleType: string) => {
     try {
