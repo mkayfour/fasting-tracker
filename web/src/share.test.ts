@@ -25,33 +25,34 @@ describe('shareFile', () => {
   it('returns shared when share succeeds', async () => {
     const share = vi.fn().mockResolvedValue(undefined)
     stubNav(() => true, share)
-    expect(await shareFile(file, 'hi')).toBe('shared')
+    expect(await shareFile(file)).toBe('shared')
     expect(share).toHaveBeenCalledOnce()
+    expect(share).toHaveBeenCalledWith({ files: [file] })
     expect(clickSpy).not.toHaveBeenCalled()
   })
 
   it('returns cancelled on AbortError without downloading', async () => {
     stubNav(() => true, vi.fn().mockRejectedValue(new DOMException('no', 'AbortError')))
-    expect(await shareFile(file, 'hi')).toBe('cancelled')
+    expect(await shareFile(file)).toBe('cancelled')
     expect(clickSpy).not.toHaveBeenCalled()
   })
 
   it('falls back to download on other share errors', async () => {
     stubNav(() => true, vi.fn().mockRejectedValue(new DOMException('no', 'NotAllowedError')))
-    expect(await shareFile(file, 'hi')).toBe('downloaded')
+    expect(await shareFile(file)).toBe('downloaded')
     expect(clickSpy).toHaveBeenCalledOnce()
   })
 
   it('downloads when canShare is unavailable', async () => {
     stubNav(undefined, undefined)
-    expect(await shareFile(file, 'hi')).toBe('downloaded')
+    expect(await shareFile(file)).toBe('downloaded')
     expect(clickSpy).toHaveBeenCalledOnce()
   })
 
   it('downloads when canShare returns false', async () => {
     const share = vi.fn()
     stubNav(() => false, share)
-    expect(await shareFile(file, 'hi')).toBe('downloaded')
+    expect(await shareFile(file)).toBe('downloaded')
     expect(share).not.toHaveBeenCalled()
   })
 })

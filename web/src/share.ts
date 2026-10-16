@@ -23,10 +23,10 @@ function download(file: File): 'downloaded' {
 
 // Must be called directly from a click handler (iOS Safari requires a user gesture),
 // so render the File ahead of time with renderCardImage.
-export async function shareFile(file: File, text: string): Promise<'shared' | 'downloaded' | 'cancelled'> {
+export async function shareFile(file: File): Promise<'shared' | 'downloaded' | 'cancelled'> {
   if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], text })
+      await navigator.share({ files: [file] })
       return 'shared'
     } catch (e) {
       if ((e as DOMException).name === 'AbortError') return 'cancelled'

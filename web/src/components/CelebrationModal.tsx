@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CompletedFast } from '../data/fasts'
 import { renderCardImage, shareFile } from '../share'
-import { formatDuration } from '../utils/time'
 import FastSummaryCard from './FastSummaryCard'
 
 type Props = { fast: CompletedFast | null; onClose: () => void }
@@ -24,13 +23,11 @@ export default function CelebrationModal({ fast, onClose }: Props) {
 
   if (!fast) return null
 
-  const text = `I just completed a ${formatDuration(fast.startAt, fast.endAt)} fast!`
-
   return (
     <div className="overlay" role="dialog" aria-modal="true" aria-label="Fast complete">
       <h2>Fast complete 🎉</h2>
       <FastSummaryCard ref={cardRef} fast={fast} />
-      <button className="btn" disabled={!file} onClick={() => file && shareFile(file, text)}>
+      <button className="btn" disabled={!file} onClick={() => file && shareFile(file)}>
         {error ? 'Sharing unavailable' : file ? 'Share' : 'Preparing…'}
       </button>
       <button className="btn-link" onClick={onClose}>Close</button>
